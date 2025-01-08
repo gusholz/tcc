@@ -1,80 +1,108 @@
 import processing.sound.*;
 
-int xCoordinate;
-int yCoordinate;
-int radius = 300;
-int steps = 1000;
-int counter = 0;
-int iterationCount = 1;
-
 AudioIn input;
 Amplitude loudness;
 
+int steps = 3500; // determine how long to draw the circle / values bigger than 5000 make the circle be too slow
+
+// RUNTIME VARIABLES
+int counter = 0;
+int iterationCount = 1;
+int xCoordinate;
+int yCoordinate;
+int radius;
+// 
+
 void setup() {
   fullScreen();
-  background(000000);
-  // frameRate(16);
+  background(#F2E9CE);
   
   input = new AudioIn(this, 0);
 
   input.start();
-  input.play();
 
   loudness = new Amplitude(this);
   loudness.input(input);
 
-
   xCoordinate = width / 2;
   yCoordinate = height /2;
+  
+  radius = height / 2 - 200; 
 }
 
 void draw() {                         
   float volume = loudness.analyze();
-  int size = int(map(volume, 0, 0.5, 1, 300 / iterationCount));
-  print("Volume:");
-  print(volume);
-  print("\n");
+  float maxSize = width / 2;
+  float size = map(volume, 0, 0.5, 1, maxSize / iterationCount);
+  
+  strokeWeight(8);
+  stroke(#F2E9CE);
+  line(
+    width / 2,
+    height * 0.1, 
+    width / 2 ,
+    height * 0.9
+  );
+  line(
+    width * 0.1,
+    height/2, 
+    width * 0.9,
+    height/2
+  );
   
   
-  color fillColor = determineColor(volume);
+  color strokeColor = determineColor(volume);
+    
+  strokeWeight(1.6);
+  stroke(strokeColor);  
   
-  fill(fillColor, 150);
-  
-  
-  noStroke();  
-  if(counter <= steps) {
+  if(counter > steps) {
+    iterationCount +=1;
+    counter = 0;
+  } else {
     float theta = TWO_PI / steps * counter;
     float x = xCoordinate + radius * cos(theta)/ iterationCount;
     float y = yCoordinate + radius * sin(theta)/ iterationCount;
-    circle(x,y,size);
-    counter += 1;
-  } else {
-    iterationCount +=1;
-    counter = 0;
-  }
+
+    beginShape(LINES);
+    vertex(x,y);
+    
+    if (x < width / 2 && y < height / 2) {
+      vertex(x - size, y - size);
+    } else if(x < width / 2 && y > height /2) {
+      vertex(x - size, y + size);
+    } else if(x > width / 2 && y < height / 2 ) {
+      vertex(x + size, y - size);
+    } else {
+      vertex(x + size, y + size);
+    }
   
+    endShape();
+    
+    counter += 1;
+  }
 }
 
 void mousePressed() {
-  save("output.png"); 
+  save("final_output3.png"); 
   print("Saved");
   counter = 0;
   iterationCount = 1;
-  background(000000);
+  background(#F2E9CE);
 }
 
 color determineColor(float value) {
   float updatedValue = value * 10000;
 
-  if (updatedValue >= 0 && updatedValue <= 100) {
-    return color(255, 0, 0); // Vermelho puro
-  } else if (updatedValue >= 101 && updatedValue <= 200) {
-    return color(255, 165, 0); // Laranja
-  } else if (updatedValue > 200 && updatedValue <= 300) {
-    return color(255, 105, 180); // Rosa
-  } else if (updatedValue > 300) {
-    return color(128, 0, 0); // Bordô
+  if (updatedValue >= 0 && updatedValue <= 150) {
+    return color(#0561D9); // azul pouco saturado
+  } else if (updatedValue >= 151 && updatedValue <= 250) {
+    return color(#0454F2); // azul mais saturado
+  } else if (updatedValue > 250 && updatedValue <= 600) {
+    return color(#8C2668); // roxo
+  } else if (updatedValue > 600) {
+    return color(#F20419); // laranja
   } else {
-    return color(50, 50, 50); // Cinza escuro para valores negativos
+    return color(50, 50, 50); // cinza para valores negativos
   }
 }
