@@ -2,6 +2,8 @@ import processing.sound.*;
 
 AudioIn input;
 Amplitude loudness;
+SoundFile sample;
+
 
 int steps = 3500; // determine how long to draw the circle / values bigger than 5000 make the circle be too slow
 
@@ -20,6 +22,8 @@ void setup() {
   input = new AudioIn(this, 0);
 
   input.start();
+  sample = new SoundFile(this, "beat.aiff");
+  sample.loop();
 
   loudness = new Amplitude(this);
   loudness.input(input);
