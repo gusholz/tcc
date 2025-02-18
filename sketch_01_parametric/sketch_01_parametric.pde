@@ -1,13 +1,40 @@
 // PARAMETERS / INPUTS
-  int frameSize = 2 ; // Min Value = 1 / Max Value = 3 / inversely proportional
-  int maxIteration = 20; // Min value = 1 / Max Value <= 20
-  int maxLineIterationCount = 50; // Min value >= 40 / Max Value = 120
-  float cantorExpoent = 2.3 / 2.4; // Expoents greater than 1 make the frame be expanded, while values lower than 1 make they be reduced
+  final int frameSize = 3;
+  // Minimum value = 1 / Maximum Value = 3
+  // determines the frame size
+  // 1 => Large sized frame
+  // 2 => Medium sized frame
+  // 3 => Small sized frame
+
+  
+  final int maxIteration = 6;
+  // Minimum value = 1
+  // determines the number of iterations of the drawing process:
+  // Greater values make the output more convoluted
+  // Smaller values make the output more sparce
+  
+  
+  final int maxLineIterationCount = 100; 
+  // Minimum value = 5 / Maximum Value = 120
+  // determines the number of lines drawn on each odd cycle iteration
+  // Greater values make the output more convoluted
+  // Smaller values make the output more sparce
+  
+    
+  final float cantorExpoent = 1.13;
+  // The most important input of the system
+  // numbers greater than 1 make the frame be expanded by the difference to 1 on each cycle iteration
+  // while numbers smaller than 1 make the frame be reduced by the difference to 1 on each cycle iteration
+  // example:
+  // cantorExpoent = 0.94 --> Make the frame be reduced by 6% on each cycle iteration
+  // cantorExpoent = 1.42 --> Make the frame be expanded by 42% on each cycle iteration
+
 //
 
 // RUNTIME VARIABLES
   int iterationCount = 1;
   boolean iterationEnded = false;
+  JSONObject json;
 //
 
 // FRAME POINTS
@@ -15,14 +42,21 @@
   PVector CORNER_POINT_RIGHT_UP;
   PVector CORNER_POINT_LEFT_DOWN;
   PVector CORNER_POINT_RIGHT_DOWN;
+  PVector FRAME;
 //
 
 void setup() {
+  // Determines the output resolution
   fullScreen();
+  
+  // Determines the output background color
   background(#282828);
-  frameRate(3); // Changes only the speed of the code execution
+  
+  // Determines the speed of the code execution / Doesn't change the final output
+  frameRate(4); 
   
   setFramePoints();
+  setFrameSize();
 }
 
 void draw() {
@@ -31,27 +65,23 @@ void draw() {
     noLoop(); // End code execution
   }
    
-  noFill();
-  stroke(#FAFAFA);    
-  float sizeFactor;
-  sizeFactor = determineSizeFactor(iterationCount, cantorExpoent);
-  float rectWidth = (CORNER_POINT_RIGHT_UP.x - CORNER_POINT_LEFT_UP.x) * sizeFactor;
-  float rectHeight = (CORNER_POINT_RIGHT_DOWN.y - CORNER_POINT_RIGHT_UP.y) * sizeFactor;
+  float sizeFactor  = setNewSizeFactor(cantorExpoent, iterationCount);
   
-  float strokeFactor = map(
-    sizeFactor, 
-    1, 
-    pow(2/3, maxIteration), 
-    8, 
-    1
-  );
+  float newRectWidth = FRAME.x * sizeFactor;
+  float newRectHeight = FRAME.y * sizeFactor;
+  
+  float strokeFactor = setNewStrokeWeight(sizeFactor);
+  print("New stroke factor: ");
+  print(strokeFactor);
   strokeWeight(strokeFactor);
   
-  boolean isOdd = iterationCount % 2 != 0; // condition to check if the iterationCount is a pair or odd number
+  // condition to check if the iterationCount is a pair or odd number
+  boolean isOdd = iterationCount % 2 != 0; 
+  
   drawShapes(
     isOdd, 
-    rectWidth,
-    rectHeight
+    newRectWidth,
+    newRectHeight
   );
 
   if (iterationCount >= maxIteration) {
@@ -61,8 +91,20 @@ void draw() {
   iterationCount++;
 }
 
-// Function based on the Cantor Set, where on each iteration, a fixed amount of a value is taken off
-float determineSizeFactor(int iterationCount, float base) {
+float setNewStrokeWeight(float base) {
+  float result = pow(
+    base,
+    iterationCount - 1
+  );
+  
+  if (result > 1) {
+    return result / 3;
+  } else {
+    return result * 3;
+  }
+}
+
+float setNewSizeFactor(float base, int iterationCount) {
   float result;
   if (iterationCount == 1) {
     result = 1;
@@ -99,16 +141,26 @@ void setFramePoints() {
   );
 }
 
+void setFrameSize() {
+  float x = CORNER_POINT_RIGHT_UP.x - CORNER_POINT_LEFT_UP.x;
+  float y = CORNER_POINT_LEFT_DOWN.y - CORNER_POINT_LEFT_UP.y;
+  FRAME = new PVector(x,y);
+}
+
 void drawShapes(boolean isOdd, float rectWidth, float rectHeight) {
+  noFill();
+  
+  // Determines the foreground color
+  stroke(#FAFAFA);    
+  
   if(isOdd) {
     rect(
-      CORNER_POINT_LEFT_UP.x, // x1
-      CORNER_POINT_LEFT_UP.y, // y1
-      rectWidth, // width
-      rectHeight // height
+      CORNER_POINT_LEFT_UP.x,
+      CORNER_POINT_LEFT_UP.y,
+      rectWidth,
+      rectHeight
     );
     
-    // NUMBERS BETWEEN 50 AND 120 WORK FOR MAX_ITERATION_COUNT
     for(int i = 1; i < maxLineIterationCount / 2; i+= 5) {
       strokeWeight(0.8);
       line(
@@ -118,7 +170,6 @@ void drawShapes(boolean isOdd, float rectWidth, float rectHeight) {
         CORNER_POINT_RIGHT_UP.y
       );
     }
-    
     float circleSize = width * 0.5 / frameSize * pow(2.0/3.0,float(iterationCount));
 
     strokeWeight(1.8);
@@ -129,10 +180,10 @@ void drawShapes(boolean isOdd, float rectWidth, float rectHeight) {
     );
   } else {
     rect(
-      CORNER_POINT_RIGHT_DOWN.x, // x2
-      CORNER_POINT_RIGHT_DOWN.y, // y2
-      rectWidth * -1, // width
-      rectHeight * -1 // height
+      CORNER_POINT_RIGHT_DOWN.x,
+      CORNER_POINT_RIGHT_DOWN.y,
+      rectWidth * -1, 
+      rectHeight * -1 
     );
     strokeWeight(0.8);
     for(int i = 0; i < maxLineIterationCount; i+= 5) {
@@ -147,6 +198,14 @@ void drawShapes(boolean isOdd, float rectWidth, float rectHeight) {
 }
 
 void mousePressed() {
-  save("final_output.png"); 
-  print("Saved");
+  print("Saved output  ");
+  String outputString = 
+    "final_output_" + 
+    frameSize + "_" + 
+    maxIteration + "_" + 
+    maxLineIterationCount + "_" + 
+    cantorExpoent + "_"  +
+    ".png";
+    
+  save(outputString); 
 }

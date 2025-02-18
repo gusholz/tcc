@@ -9,8 +9,8 @@ class Particle {
   Particle() {
     position = new PVector(random(width), random(height));
     velocity = new PVector(0,0);
-    rectWidth =  1;// random(1,3);
-    rectHeight = 2;// random(1,4);
+    rectWidth =  1;
+    rectHeight = 2;
   }
   
   void updatePosition() {
