@@ -1,4 +1,5 @@
-# Algoritmos Baseados em Design Computacional
+# Algoritmos Baseados no Design Computacional
+Acesso a monografia disponível no link: https://docs.google.com/document/d/10nvZHsbcrD-31PFYjHUbO--69VhWNOh-5Fie-DC_-V4/edit?usp=sharing 
 
 ## Algoritmo baseado no Design Paramétrico
 
